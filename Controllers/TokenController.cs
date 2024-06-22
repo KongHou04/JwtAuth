@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 [ApiController]
-[Route("token")]
+[Route("api/token")]
 public class TokenController(IConfiguration configuration, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager) : ControllerBase
 {
-    [HttpPost("get")]
+    [HttpPost("access")]
     public async Task<IActionResult> GetAccessToken([FromBody]UserModel userModel)
     {
         if (!ModelState.IsValid)
@@ -21,8 +21,15 @@ public class TokenController(IConfiguration configuration, UserManager<AppUser> 
             return BadRequest();
 
         var result = await signInManager.CheckPasswordSignInAsync(user, userModel.Password!, false);
+
+        if (result.IsNotAllowed)
+            return BadRequest("Not allowed");
+
+        if (result.IsLockedOut)
+            return BadRequest("Account is locked out");
+
         if (!result.Succeeded)
-            return BadRequest();
+            return BadRequest("Errors occured");
 
         // Generate jwt
         var token = await GenerateToken(user);

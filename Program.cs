@@ -40,6 +40,13 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddSingleton<EmailSender>(options =>
+{
+    string username = builder.Configuration["MailInfo:Mail"]?? "";
+    string password = builder.Configuration["MailInfo:Password"] ?? "";
+    return new EmailSender(username, password);
+});
+
 
 var app = builder.Build();
 
